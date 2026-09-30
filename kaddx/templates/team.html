@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}{{ team.name }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <h2><span class="badge-initial big">{{ team.name[0] }}</span> {{ team.name }}</h2>
+  <p style="text-align:center; color:var(--dim);">
+    District: {{ team.district or '—' }} &nbsp;|&nbsp; Coach/Manager: {{ team.manager or 'TBD' }}
+  </p>
+
+  <div class="cards">
+    <div class="card"><h3>Played</h3><p>{{ stats.played }} matches</p></div>
+    <div class="card"><h3>Won / Lost</h3><p>{{ stats.won }} / {{ stats.lost }}</p></div>
+    <div class="card"><h3>Raid Points</h3><p>{{ stats.raid }}</p></div>
+    <div class="card"><h3>Tackle Points</h3><p>{{ stats.tackle }}</p></div>
+    <div class="card"><h3>Super 10s / High 5s</h3><p>{{ stats.super10 }} / {{ stats.high5 }}</p></div>
+  </div>
+
+  <h3 class="sub-h">Players</h3>
+  <table class="schedule-table">
+    <thead>
+      <tr><th>Player</th><th>Position</th><th>Matches</th><th>Raid Pts</th>
+        <th>Tackle Pts</th><th>Total Pts</th><th>Super 10</th><th>High 5</th></tr>
+    </thead>
+    <tbody>
+      {% for p in players %}
+      <tr>
+        <td><span class="badge-initial">{{ p.name[0] }}</span> {{ p.name }}</td>
+        <td>{{ p.position }}</td>
+        <td>{{ p.matches_played }}</td>
+        <td>{{ p.raid_points }}</td>
+        <td>{{ p.tackle_points }}</td>
+        <td>{{ p.raid_points + p.tackle_points }}</td>
+        <td>{{ p.super10 }}</td>
+        <td>{{ p.high5 }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p style="text-align:center; margin-top: 20px;">
+    <a href="{{ url_for('teams') }}" class="btn">← All Teams</a>
+  </p>
+</section>
+{% endblock %}

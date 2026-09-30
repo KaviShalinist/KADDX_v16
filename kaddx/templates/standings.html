@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Standings{% endblock %}
+
+{% block content %}
+<section class="section">
+  <h2>🏆 Points Table</h2>
+  <table class="schedule-table">
+    <thead>
+      <tr><th>#</th><th>Team</th><th>Played</th><th>Won</th><th>Lost</th>
+        <th>Points For</th><th>Points Against</th><th>Score Diff</th><th>Points</th></tr>
+    </thead>
+    <tbody>
+      {% for t in teams %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td><a href="{{ url_for('team_detail', tid=t.id) }}" class="link-gold">{{ t.name }}</a>
+            <span class="tiny">({{ t.district or '—' }})</span></td>
+        <td>{{ t.played }}</td><td>{{ t.won }}</td><td>{{ t.lost }}</td>
+        <td>{{ t.pf }}</td><td>{{ t.pa }}</td>
+        <td>{{ t.diff }}</td>
+        <td><strong class="gold">{{ t.pts }}</strong></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

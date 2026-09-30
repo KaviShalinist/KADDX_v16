@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}My Team{% endblock %}
+
+{% block content %}
+<section class="section">
+  <h2>📋 Team Manager Dashboard</h2>
+  <p class="welcome">Welcome, <strong>{{ session['name'] }}</strong>!</p>
+
+  {% if my_team %}
+
+    <div class="cards">
+      <div class="card"><h3>My Team</h3><p>{{ my_team.name }}</p></div>
+      <div class="card"><h3>District</h3><p>{{ my_team.district or '—' }}</p></div>
+      <div class="card"><h3>Played</h3><p>{{ stats.played }}</p></div>
+      <div class="card"><h3>Won / Lost</h3><p>{{ stats.won }} / {{ stats.lost }}</p></div>
+    </div>
+
+    <h3 class="sub-h">My Players — Stats</h3>
+    <table class="schedule-table">
+      <thead>
+        <tr><th>Player</th><th>Position</th><th>Matches</th><th>Raid Pts</th>
+          <th>Tackle Pts</th><th>Total</th><th>Super 10</th><th>High 5</th></tr>
+      </thead>
+      <tbody>
+        {% for p in players %}
+        <tr>
+          <td>{{ p.name }}</td>
+          <td>{{ p.position }}</td>
+          <td>{{ p.matches_played }}</td>
+          <td>{{ p.raid_points }}</td>
+          <td>{{ p.tackle_points }}</td>
+          <td>{{ p.raid_points + p.tackle_points }}</td>
+          <td>{{ p.super10 }}</td>
+          <td>{{ p.high5 }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align:center;">No players yet — ask the admin to add players to your team.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <p style="text-align:center; margin-top:20px;">
+      <a href="{{ url_for('account') }}" class="btn btn-sm">⚙️ My Account</a>
+      <a href="{{ url_for('team_detail', tid=my_team.id) }}" class="btn btn-sm">Public Team Page</a>
+      <a href="{{ url_for('compare') }}" class="btn btn-sm">Compare With Other Teams</a>
+    </p>
+
+  {% else %}
+
+    <div class="admin-box" style="max-width:420px; margin:0 auto;">
+      <h3>Create Your Team</h3>
+      <p class="tiny">You don't have a team yet — create one now.</p>
+      <form method="POST" action="{{ url_for('manager_create_team') }}">
+        <div class="form-group"><label>Team Name</label>
+          <input type="text" name="name" required></div>
+        <div class="form-group"><label>District</label>
+          <input type="text" name="district" placeholder="e.g. Erode"></div>
+        <button class="btn btn-sm">Create Team</button>
+      </form>
+    </div>
+
+  {% endif %}
+</section>
+{% endblock %}

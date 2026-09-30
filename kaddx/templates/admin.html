@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel{% endblock %}
+
+{% block content %}
+<section class="section" style="max-width:1250px;">
+
+  <h2>👑 Admin Control Panel</h2>
+  <p style="text-align:center; color:var(--dim); margin-bottom:35px;">
+    Tournament workflow: create teams & players → create fixtures → assign officials →
+    start match → update score → end match → result auto-publishes.
+  </p>
+
+  <!-- ============ TOURNAMENT SETTINGS ============ -->
+  <div class="admin-box" style="margin-bottom:20px;">
+    <h3>🏆 Tournament Settings (Event Page)</h3>
+    <form method="POST" action="{{ url_for('admin_edit_tournament') }}">
+      <div class="form-row">
+        <div class="form-group"><label>Tournament Name</label>
+          <input type="text" name="name" value="{{ t.name }}"></div>
+        <div class="form-group"><label>Venue</label>
+          <input type="text" name="venue" value="{{ t.venue }}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Start Date</label>
+          <input type="date" name="start_date" value="{{ t.start_date }}"></div>
+        <div class="form-group"><label>End Date</label>
+          <input type="date" name="end_date" value="{{ t.end_date }}"></div>
+        <div class="form-group"><label>Category</label>
+          <select name="gender">
+            <option {{ 'selected' if t.gender == 'Men' }}>Men</option>
+            <option {{ 'selected' if t.gender == 'Women' }}>Women</option>
+          </select></div>
+        <div class="form-group"><label>Level</label>
+          <select name="level">
+            {% for s in ['District','Zone','State'] %}
+            <option {{ 'selected' if t.level == s }}>{{ s }}</option>
+            {% endfor %}
+          </select></div>
+        <div class="form-group"><label>Tournament Status</label>
+          <select name="status">
+            {% for s in t_status %}
+            <option value="{{ s }}" {{ 'selected' if t.status == s }}>{{ s|capitalize }}</option>
+            {% endfor %}
+          </select></div>
+      </div>
+      <button class="btn btn-sm">Save Tournament</button>
+    </form>
+  </div>
+
+  <!-- ============ CREATE FORMS ============ -->
+  <div class="admin-grid">
+    <div class="admin-box">
+      <h3>➕ Create User</h3>
+      <form method="POST" action="{{ url_for('admin_add_user') }}">
+        <div class="form-group"><label>Name</label><input type="text" name="name" required></div>
+        <div class="form-group"><label>Email</label><input type="email" name="email" required></div>
+        <div class="form-group"><label>Password</label><input type="text" name="password" required></div>
+        <div class="form-group"><label>Role</label>
+          <select name="role">
+            <option value="player">Player</option>
+            <option value="manager">Team Manager</option>
+          </select></div>
+        <button class="btn btn-sm">Create User</button>
+      </form>
+    </div>
+
+    <div class="admin-box">
+      <h3>➕ Create Team</h3>
+      <form method="POST" action="{{ url_for('admin_add_team') }}">
+        <div class="form-group"><label>Team Name</label><input type="text" name="name" required></div>
+        <div class="form-group"><label>District</label><input type="text" name="district" placeholder="e.g. Erode"></div>
+        <button class="btn btn-sm">Create Team</button>
+      </form>
+    </div>
+
+    <div class="admin-box">
+      <h3>➕ Create Player Profile</h3>
+      <form method="POST" action="{{ url_for('admin_add_player') }}">
+        <div class="form-group"><label>User (player role)</label>
+          <select name="user_id" required>
+            <option value="">— Select —</option>
+            {% for u in free_players %}<option value="{{ u.id }}">{{ u.name }}</option>{% endfor %}
+          </select></div>
+        <div class="form-group"><label>Team</label>
+          <select name="team_id" required>
+            <option value="">— Select —</option>
+            {% for t2 in team_rows %}<option value="{{ t2.id }}">{{ t2.name }}</option>{% endfor %}
+          </select></div>
+        <div class="form-group"><label>Position</label>
+          <select name="position">
+            {% for p in positions %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
+          </select></div>
+        <div class="form-group"><label>Category</label>
+          <select name="gender">
+            <option value="Men">Men</option>
+            <option value="Women">Women</option>
+          </select></div>
+        <button class="btn btn-sm">Create Profile</button>
+      </form>
+    </div>
+
+    <div class="admin-box">
+      <h3>➕ Create Fixture</h3>
+      <form method="POST" action="{{ url_for('admin_add_match') }}">
+        <div class="form-row">
+          <div class="form-group"><label>Team 1</label>
+            <select name="team1_id" required>
+              {% for t2 in team_rows %}<option value="{{ t2.id }}">{{ t2.name }}</option>{% endfor %}
+            </select></div>
+          <div class="form-group"><label>Team 2</label>
+            <select name="team2_id" required>
+              {% for t2 in team_rows %}<option value="{{ t2.id }}">{{ t2.name }}</option>{% endfor %}
+            </select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Date</label><input type="date" name="date" required></div>
+          <div class="form-group"><label>Time</label><input type="text" name="time" placeholder="2:00 PM"></div>
+        </div>
+        <div class="form-group"><label>Venue</label><input type="text" name="venue" required></div>
+        <div class="form-row">
+          <div class="form-group"><label>Stage</label>
+            <select name="stage">
+              {% for s in stages %}<option value="{{ s }}">{{ s|capitalize }}</option>{% endfor %}
+            </select></div>
+          <div class="form-group"><label>Referee</label><input type="text" name="referee"></div>
+          <div class="form-group"><label>Scorer</label><input type="text" name="scorer"></div>
+        </div>
+        <button class="btn btn-sm">Create Fixture</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ MATCH CONTROL (start / score / end) ============ -->
+  <h3 class="sub-h">Match Control — LIVE Scores</h3>
+  <table class="schedule-table">
+    <thead>
+      <tr><th>Date</th><th>Match</th><th>Stage</th><th>Officials</th><th>Status</th>
+        <th style="width:330px;">Controls</th></tr>
+    </thead>
+    <tbody>
+      {% for m in matches %}
+      <tr>
+        <td>{{ m.date }}</td>
+        <td>{{ m.team1 }} vs {{ m.team2 }}</td>
+        <td>{{ m.stage|capitalize }}</td>
+        <td class="tiny">{{ m.referee or '—' }} / {{ m.scorer or '—' }}</td>
+        <td><span class="status {{ m.status }}">{{ m.status }}</span></td>
+        <td>
+          {% if m.status == 'upcoming' %}
+            <form method="POST" action="{{ url_for('admin_match_control') }}" class="inline-form">
+              <input type="hidden" name="match_id" value="{{ m.id }}">
+              <input type="hidden" name="action" value="start">
+              <button class="btn btn-sm">▶ Start Match</button>
+            </form>
+          {% elif m.status == 'live' %}
+            <form method="POST" action="{{ url_for('admin_submit_score') }}" class="score-form">
+              <input type="hidden" name="match_id" value="{{ m.id }}">
+              <input type="number" name="team1_points" min="0" placeholder="T1"
+                     value="{{ m.team1_points if m.team1_points is not none }}" required>
+              <input type="number" name="team2_points" min="0" placeholder="T2"
+                     value="{{ m.team2_points if m.team2_points is not none }}" required>
+              <input type="text" name="live_note" class="note-input" placeholder="e.g. 2nd Half | 08:32"
+                     value="{{ m.live_note or '' }}">
+              <button class="btn btn-sm">Update</button>
+            </form>
+            <form method="POST" action="{{ url_for('admin_match_control') }}" class="inline-form">
+              <input type="hidden" name="match_id" value="{{ m.id }}">
+              <input type="hidden" name="action" value="end">
+              <button class="btn btn-sm btn-danger">⏹ End Match</button>
+            </form>
+          {% else %}
+            <strong class="final-score">{{ m.team1_points }} — {{ m.team2_points }}</strong>
+            <span class="tiny">✓ Published</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- ============ TEAMS LIST ============ -->
+  <h3 class="sub-h">Teams ({{ teams|length }})</h3>
+  <table class="schedule-table">
+    <thead><tr><th>Team</th><th>District</th><th>Manager</th></tr></thead>
+    <tbody>
+      {% for t2 in teams %}
+      <tr><td>{{ t2.name }}</td><td>{{ t2.district or '—' }}</td><td>{{ t2.manager or '—' }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- ============ PLAYERS + STATS EDIT ============ -->
+  <h3 class="sub-h">Players — Edit Stats ({{ players|length }})</h3>
+  <table class="schedule-table">
+    <thead>
+      <tr><th>Player</th><th>Team</th><th>Pos</th><th>Cat</th><th>MP</th><th>Raid</th>
+        <th>Tackle</th><th>S10</th><th>H5</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for p in players %}
+      <tr>
+        <form method="POST" action="{{ url_for('admin_update_player') }}">
+        <td>{{ p.pname }}</td>
+        <td><select name="team_id">
+          {% for t2 in team_rows %}
+          <option value="{{ t2.id }}" {{ 'selected' if t2.id == p.team_id }}>{{ t2.name }}</option>
+          {% endfor %}
+        </select></td>
+        <td><select name="position">
+          {% for pos in positions %}
+          <option value="{{ pos }}" {{ 'selected' if pos == p.position }}>{{ pos }}</option>
+          {% endfor %}
+        </select></td>
+        <td><select name="gender">
+          <option value="Men" {{ 'selected' if p.gender != 'Women' }}>Men</option>
+          <option value="Women" {{ 'selected' if p.gender == 'Women' }}>Women</option>
+        </select></td>
+        <td><input type="number" name="matches_played" value="{{ p.matches_played }}" class="num-input"></td>
+        <td><input type="number" name="raid_points" value="{{ p.raid_points }}" class="num-input"></td>
+        <td><input type="number" name="tackle_points" value="{{ p.tackle_points }}" class="num-input"></td>
+        <td><input type="number" name="super10" value="{{ p.super10 }}" class="num-input"></td>
+        <td><input type="number" name="high5" value="{{ p.high5 }}" class="num-input"></td>
+        <td><input type="hidden" name="player_id" value="{{ p.id }}">
+            <button class="btn btn-sm">Update</button></td>
+        </form>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</section>
+{% endblock %}

@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Stats{% endblock %}
+
+{% block content %}
+<section class="section" style="max-width:1000px;">
+  <h2>📊 Stats & Rankings</h2>
+  <p style="text-align:center; color:var(--dim); margin-bottom:35px;">
+    CM Trophy Kabaddi — Player & Team Performance Rankings
+  </p>
+
+  <!-- ============ PLAYER RANKINGS ============ -->
+  <h3 class="sub-title">🤼 Player Rankings <span class="tiny">— Total Points</span></h3>
+  <p class="stats-hint">💡 <strong>Player click pannunga</strong> — full detail popup varum!</p>
+  <table class="schedule-table">
+    <thead>
+      <tr><th>Rank</th><th>Player</th><th>Team</th><th>Total Points</th></tr>
+    </thead>
+    <tbody>
+      {% for p in players %}
+      <tr class="player-row {{ 'r1' if loop.index == 1 else ('r2' if loop.index == 2 else ('r3' if loop.index == 3 else '')) }}"
+          onclick="openPlayer({{ p.id }})">
+        <td class="rank-cell">
+          {% if loop.index == 1 %}<span class="medal">🥇</span>{% elif loop.index == 2 %}<span class="medal">🥈</span>{% elif loop.index == 3 %}<span class="medal">🥉</span>{% endif %}
+          {{ loop.index }}
+        </td>
+        <td><span class="badge-initial">{{ p.name[0] }}</span><span class="player-name">{{ p.name }}</span></td>
+        <td>{{ p.tname or '—' }}</td>
+        <td class="total-pts">{{ p.total_pts }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" style="text-align:center;">No players yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- ============ TEAM RANKINGS ============ -->
+  <h3 class="sub-title">🛡️ Team Rankings <span class="tiny">— Points (Win = 5)</span></h3>
+  <p class="stats-hint">💡 <strong>Team click pannunga</strong> — full team detail popup varum!</p>
+  <table class="schedule-table">
+    <thead>
+      <tr><th>Rank</th><th>Team</th><th>District</th><th>Won</th><th>Lost</th><th>Points</th></tr>
+    </thead>
+    <tbody>
+      {% for t in teams %}
+      <tr class="player-row {{ 'r1' if loop.index == 1 else ('r2' if loop.index == 2 else ('r3' if loop.index == 3 else '')) }}"
+          onclick="openTeam({{ t.id }})">
+        <td class="rank-cell">
+          {% if loop.index == 1 %}<span class="medal">🥇</span>{% elif loop.index == 2 %}<span class="medal">🥈</span>{% elif loop.index == 3 %}<span class="medal">🥉</span>{% endif %}
+          {{ loop.index }}
+        </td>
+        <td><span class="badge-initial">{{ t.name[0] }}</span><span class="player-name">{{ t.name }}</span></td>
+        <td>{{ t.district or '—' }}</td>
+        <td>{{ t.won }}</td>
+        <td>{{ t.lost }}</td>
+        <td class="total-pts">{{ t.pts }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" style="text-align:center;">No teams yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ PLAYER DETAIL POPUP ============ -->
+<div class="modal-overlay" id="p-overlay" onclick="if(event.target===this) closeModal('p-overlay')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('p-overlay')">✕</button>
+    <div class="modal-top">
+      <div class="modal-avatar" id="p-avatar">A</div>
+      <p class="modal-rank" id="p-rank"></p>
+      <h2 class="modal-name" id="p-name"></h2>
+      <p class="modal-team" id="p-team"></p>
+      <div class="modal-position"><span class="pos-pill" id="p-pos"></span></div>
+    </div>
+    <div class="modal-stats">
+      <div class="ms-box hero"><div class="ms-val" id="p-total">0</div><div class="ms-label">Total Points</div></div>
+      <div class="ms-box"><div class="ms-val" id="p-mp">0</div><div class="ms-label">Matches</div></div>
+      <div class="ms-box"><div class="ms-val" id="p-ppm">0</div><div class="ms-label">Pts / Match</div></div>
+      <div class="ms-box"><div class="ms-val" id="p-raid">0</div><div class="ms-label">Raid Pts</div></div>
+      <div class="ms-box"><div class="ms-val" id="p-tackle">0</div><div class="ms-label">Tackle Pts</div></div>
+      <div class="ms-box"><div class="ms-val" id="p-s10">0</div><div class="ms-label">Super 10s</div></div>
+      <div class="ms-box"><div class="ms-val" id="p-h5">0</div><div class="ms-label">High 5s</div></div>
+    </div>
+    <p class="modal-foot">Stats update automatically after every match • KADDX</p>
+  </div>
+</div>
+
+<!-- ============ TEAM DETAIL POPUP ============ -->
+<div class="modal-overlay" id="t-overlay" onclick="if(event.target===this) closeModal('t-overlay')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('t-overlay')">✕</button>
+    <div class="modal-top">
+      <div class="modal-avatar" id="t-avatar">S</div>
+      <p class="modal-rank" id="t-rank"></p>
+      <h2 class="modal-name" id="t-name"></h2>
+      <p class="modal-team" id="t-district"></p>
+    </div>
+    <div class="modal-stats">
+      <div class="ms-box hero"><div class="ms-val" id="t-diff">0</div><div class="ms-label">Score Diff</div></div>
+      <div class="ms-box"><div class="ms-val" id="t-mp">0</div><div class="ms-label">Played</div></div>
+      <div class="ms-box"><div class="ms-val" id="t-pf">0</div><div class="ms-label">Pts For</div></div>
+      <div class="ms-box"><div class="ms-val" id="t-pa">0</div><div class="ms-label">Pts Against</div></div>
+      <div class="ms-box"><div class="ms-val" id="t-raid">0</div><div class="ms-label">Raid Pts</div></div>
+      <div class="ms-box"><div class="ms-val" id="t-tackle">0</div><div class="ms-label">Tackle Pts</div></div>
+      <div class="ms-box"><div class="ms-val" id="t-s10">0</div><div class="ms-label">Super 10s</div></div>
+      <div class="ms-box"><div class="ms-val" id="t-h5">0</div><div class="ms-label">High 5s</div></div>
+    </div>
+    <p class="modal-foot">Stats update automatically after every match • KADDX</p>
+  </div>
+</div>
+
+<script>
+const PLAYERS = {{ players_json|safe }};
+const TEAMS = {{ teams_json|safe }};
+
+function openPlayer(id) {
+  const p = PLAYERS.find(x => x.id === id); if (!p) return;
+  const idx = PLAYERS.indexOf(p) + 1;
+  document.getElementById('p-avatar').textContent = p.name[0];
+  document.getElementById('p-rank').textContent = 'RANK #' + idx + (idx === 1 ? ' • 🥇' : idx === 2 ? ' • 🥈' : idx === 3 ? ' • 🥉' : '');
+  document.getElementById('p-name').textContent = p.name;
+  document.getElementById('p-team').textContent = p.tname || '—';
+  document.getElementById('p-pos').textContent = p.position || '—';
+  document.getElementById('p-total').textContent = p.total_pts;
+  document.getElementById('p-mp').textContent = p.matches_played;
+  document.getElementById('p-ppm').textContent = p.matches_played ? (p.total_pts / p.matches_played).toFixed(1) : '0';
+  document.getElementById('p-raid').textContent = p.raid_points;
+  document.getElementById('p-tackle').textContent = p.tackle_points;
+  document.getElementById('p-s10').textContent = p.super10;
+  document.getElementById('p-h5').textContent = p.high5;
+  document.getElementById('p-overlay').classList.add('open');
+}
+
+function openTeam(id) {
+  const t = TEAMS.find(x => x.id === id); if (!t) return;
+  const idx = TEAMS.indexOf(t) + 1;
+  document.getElementById('t-avatar').textContent = t.name[0];
+  document.getElementById('t-rank').textContent = 'RANK #' + idx + (idx === 1 ? ' • 🥇' : idx === 2 ? ' • 🥈' : idx === 3 ? ' • 🥉' : '');
+  document.getElementById('t-name').textContent = t.name;
+  document.getElementById('t-district').textContent = (t.district || '—') + ' District';
+  document.getElementById('t-diff').textContent = t.played ? (t.diff > 0 ? '+' + t.diff : t.diff) : '0';
+  document.getElementById('t-diff').style.color = t.played && t.diff > 0 ? '#4ade80' : (t.played && t.diff < 0 ? '#f87171' : '');
+  document.getElementById('t-mp').textContent = t.played;
+  document.getElementById('t-pf').textContent = t.played ? t.pf : '—';
+  document.getElementById('t-pa').textContent = t.played ? t.pa : '—';
+  document.getElementById('t-raid').textContent = t.raid;
+  document.getElementById('t-tackle').textContent = t.tackle;
+  document.getElementById('t-s10').textContent = t.super10;
+  document.getElementById('t-h5').textContent = t.high5;
+  document.getElementById('t-overlay').classList.add('open');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal('p-overlay'); closeModal('t-overlay'); }
+});
+</script>
+{% endblock %}

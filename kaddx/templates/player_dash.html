@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<section class="section">
+  <h2>🤼 Player Dashboard</h2>
+  <p class="welcome">Welcome, <strong>{{ session['name'] }}</strong>!</p>
+
+  {% if me %}
+
+    <div class="cards">
+      <div class="card"><h3>Team</h3><p>{{ me.team_name or '—' }}</p></div>
+      <div class="card"><h3>Position</h3><p>{{ me.position }}</p></div>
+      <div class="card"><h3>Matches</h3><p>{{ me.matches_played }}</p></div>
+      <div class="card"><h3>Total Points</h3><p>{{ me.raid_points + me.tackle_points }}</p></div>
+    </div>
+
+    <h3 class="sub-h">My Performance</h3>
+    <table class="schedule-table">
+      <thead><tr><th>Raid Pts</th><th>Tackle Pts</th><th>Total</th><th>Super 10</th><th>High 5</th>
+        <th>Points / Match</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>{{ me.raid_points }}</td>
+          <td>{{ me.tackle_points }}</td>
+          <td>{{ me.raid_points + me.tackle_points }}</td>
+          <td>{{ me.super10 }}</td>
+          <td>{{ me.high5 }}</td>
+          <td>{{ ((me.raid_points + me.tackle_points) / me.matches_played) | round(1) if me.matches_played else 0 }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    {% if stats %}
+    <h3 class="sub-h">My Team — {{ me.team_name }}</h3>
+    <div class="cards">
+      <div class="card"><h3>Played</h3><p>{{ stats.played }}</p></div>
+      <div class="card"><h3>Won / Lost</h3><p>{{ stats.won }} / {{ stats.lost }}</p></div>
+      <div class="card"><h3>Raid / Tackle Pts</h3><p>{{ stats.raid }} / {{ stats.tackle }}</p></div>
+    </div>  <p style="text-align:center; margin-top:20px;">
+    <a href="{{ url_for('account') }}" class="btn btn-sm">⚙️ My Account</a>
+    <a href="{{ url_for('team_detail', tid=me.team_id) }}" class="btn btn-sm">Team Page</a>
+    <a href="{{ url_for('compare') }}" class="btn btn-sm">Compare Teams</a>
+  </p>
+    {% endif %}
+
+    <h3 class="sub-h">Edit My Position</h3>
+    <form method="POST" action="{{ url_for('player_edit_profile') }}" class="reg-form" style="max-width:380px;">
+      <div class="form-group"><label>Position</label>
+        <select name="position">
+          {% for p in positions %}
+          <option value="{{ p }}" {{ 'selected' if p == me.position }}>{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button class="btn btn-sm">Update</button>
+    </form>
+
+  {% else %}
+
+    <div class="admin-box" style="max-width:420px; margin:0 auto;">
+      <h3>Create Your Player Profile</h3>
+      <p class="tiny">Your account is ready — now join a team!</p>
+      <form method="POST" action="{{ url_for('player_create_profile') }}">
+        <div class="form-group"><label>Choose Your Team</label>
+          <select name="team_id" required>
+            <option value="">— Select team —</option>
+            {% for t in team_rows %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
+          </select></div>
+        <div class="form-group"><label>Position</label>
+          <select name="position">
+            {% for p in positions %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
+          </select></div>
+        <div class="form-group"><label>Category</label>
+          <select name="gender">
+            <option value="Men">Men</option>
+            <option value="Women">Women</option>
+          </select></div>
+        <button class="btn btn-sm">Join Team</button>
+      </form>
+    </div>
+
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}KADDX{% endblock %}
+
+{% block content %}
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <img src="{{ url_for('static', filename='logo.jpg') }}" alt="KADDX"
+       class="hero-logo">
+  <p class="powered-by">Powered by <strong>SCUBE Sports Technology</strong></p>
+  <h1 class="hero-title">{{ t.name or 'CM Trophy Kabaddi 2026' }}</h1>
+
+  <!-- tagline -->
+  <p class="tagline">Raid <span class="sep">•</span> Tackle <span class="sep">•</span> Conquer</p>
+
+  <!-- highlighted info boxes -->
+  <div class="highlights">
+    <div class="hl">
+      <span class="hl-label">📅 Tournament Dates</span>
+      <span class="hl-value">{{ t.start_date }} – {{ t.end_date }}</span>
+    </div>
+    <div class="hl">
+      <span class="hl-label">📍 Venue</span>
+      <span class="hl-value">{{ t.venue }}</span>
+    </div>
+    <div class="hl">
+      <span class="hl-label">🏏 Sport</span>
+      <span class="hl-value big">Kabaddi — Men & Women</span>
+    </div>
+    <div class="hl">
+      <span class="hl-label">🏆 Status</span>
+      <span class="hl-value big status-text">{{ (t.status or 'upcoming')|upper }}</span>
+    </div>
+  </div>
+
+  <!-- ⏳ countdown to next match -->
+  {% if next_iso and not live %}
+  <div class="countdown-wrap">
+    <p class="cd-label">⏰ Next Match Starts In</p>
+    <div class="countdown" id="countdown" data-target="{{ next_iso }}">
+      <div class="cd-box"><div class="cd-num" id="cd-d">00</div><div class="cd-unit">Days</div></div>
+      <div class="cd-box"><div class="cd-num" id="cd-h">00</div><div class="cd-unit">Hours</div></div>
+      <div class="cd-box"><div class="cd-num" id="cd-m">00</div><div class="cd-unit">Minutes</div></div>
+      <div class="cd-box"><div class="cd-num" id="cd-s">00</div><div class="cd-unit">Seconds</div></div>
+    </div>
+  </div>
+  {% endif %}
+</section>
+
+<!-- ============ LIVE SECTION ============ -->
+<section class="section" style="max-width:850px;">
+  {% if live %}
+    {% for m in live %}
+    <div class="landing-live">
+      <p class="live-badge"><span class="live-dot"></span> LIVE</p>
+      <div class="live-row">
+        <div class="live-side">
+          <div class="district-name">{{ m.d1 or m.team1 }} District</div>
+          <div class="team-name">{{ m.team1 }}</div>
+        </div>
+        <div class="live-center">
+          <div class="score-big">{{ m.team1_points }}</div>
+          <div class="vs">VS</div>
+          <div class="score-big">{{ m.team2_points }}</div>
+        </div>
+        <div class="live-side">
+          <div class="district-name">{{ m.d2 or m.team2 }} District</div>
+          <div class="team-name">{{ m.team2 }}</div>
+        </div>
+      </div>
+      {% if m.live_note %}<p class="live-note">{{ m.live_note }}</p>{% endif %}
+      <a href="{{ url_for('match_detail', mid=m.id) }}" class="btn">View Live Match</a>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="landing-live">
+      <p class="no-live">No matches are currently live.</p>
+      {% if next_match %}
+      <div class="next-box">
+        <p class="next-label">Next Match</p>
+        <p class="next-teams">{{ next_match.team1 }} vs {{ next_match.team2 }}</p>
+        <p class="next-when">{{ next_match.date }} &nbsp;|&nbsp; {{ next_match.time or 'TBD' }}</p>
+      </div>
+      {% endif %}
+    </div>
+  {% endif %}
+</section>
+
+<!-- ============ TOP PERFORMERS ============ -->
+<section class="section" style="max-width:950px;">
+  <h2>🌟 Top Performers</h2>
+
+  <!-- MEN / WOMEN tabs -->
+  <div class="gender-tabs">
+    <button type="button" class="g-tab active" id="tab-men" onclick="showGender('men')">🏀 MEN</button>
+    <button type="button" class="g-tab" id="tab-women" onclick="showGender('women')">🏃 WOMEN</button>
+  </div>
+
+  {% for group, group_key in [('Men', 'performers_men'), ('Women', 'performers_women')] %}
+  <div class="performers" id="perf-{{ group|lower }}" {{ 'style="display:none;"' if group == 'Women' else '' }}>
+    {% for key, crown, title, unit in [
+      ('raider', '👑', 'Best Raider', 'Raid Points'),
+      ('defender', '🛡️', 'Best Defender', 'Tackle Points'),
+      ('super10', '🔥', 'Most Super 10s', 'Super 10s'),
+      ('high5', '🧤', 'Most High 5s', 'High 5s')] %}
+    {% set p = performers_gendered[group][key] %}
+    <div class="perf-card">
+      <div class="perf-crown">{{ crown }}</div>
+      <div class="perf-title">{{ title }}</div>
+      {% if p %}
+      <div class="perf-avatar">{{ p['name'][0] }}</div>
+      <div class="perf-name">{{ p['name'] }}</div>
+      <div class="perf-team">{{ p['tname'] or '—' }}</div>
+      <div class="perf-stat">{{ p['val'] }} {{ unit }}</div>
+      {% else %}
+      <div class="perf-team">No data yet</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</section>
+
+<script>
+function showGender(g) {
+  document.getElementById('perf-men').style.display = g === 'men' ? '' : 'none';
+  document.getElementById('perf-women').style.display = g === 'women' ? '' : 'none';
+  document.getElementById('tab-men').classList.toggle('active', g === 'men');
+  document.getElementById('tab-women').classList.toggle('active', g === 'women');
+}
+</script>
+
+<!-- ============ QUICK NAVIGATION ============ -->
+<section class="section">
+  <h2>Quick Navigation</h2>
+  <div class="quick-cards">
+    <a href="{{ url_for('fixtures', date=today) }}" class="quick-card">
+      <h3>📅 Today's Matches</h3>
+      <p>{{ today_matches|length }} match{{ 'es' if today_matches|length != 1 }} today</p>
+    </a>
+    <a href="{{ url_for('teams') }}" class="quick-card">
+      <h3>🛡️ Teams</h3>
+      <p>{{ counts.teams }} teams</p>
+    </a>
+    <a href="{{ url_for('players') }}" class="quick-card">
+      <h3>🤼 Players</h3>
+      <p>{{ counts.players }} players</p>
+    </a>
+    <a href="{{ url_for('results') }}" class="quick-card">
+      <h3>🏁 Results</h3>
+      <p>Completed matches</p>
+    </a>
+  </div>
+</section>
+
+{% if next_iso and not live %}
+<script>
+// ⏳ live countdown to the next match
+(function () {
+  var target = new Date(document.getElementById('countdown').dataset.target).getTime();
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function tick() {
+    var diff = Math.max(0, target - Date.now());
+    document.getElementById('cd-d').textContent = pad(Math.floor(diff / 86400000));
+    diff %= 86400000;
+    document.getElementById('cd-h').textContent = pad(Math.floor(diff / 3600000));
+    diff %= 3600000;
+    document.getElementById('cd-m').textContent = pad(Math.floor(diff / 60000));
+    diff %= 60000;
+    document.getElementById('cd-s').textContent = pad(Math.floor(diff / 1000));
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
+{% endif %}
+
+{% endblock %}

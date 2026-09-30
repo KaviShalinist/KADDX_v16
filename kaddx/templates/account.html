@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}My Account{% endblock %}
+
+{% block content %}
+<section class="section" style="max-width:700px;">
+  <h2>⚙️ My Account</h2>
+  <p style="text-align:center; color:var(--dim); margin-bottom:25px;">
+    👤 Logged in as: {{ me.name }} ({{ 'Team Manager' if session['role'] == 'manager' else 'Player' }}{% if my_team %}, {{ my_team.name }}{% endif %})
+  </p>
+
+  <form method="POST" class="reg-form">
+    <div class="form-row">
+      <div class="form-group"><label>Full Name</label>
+        <input type="text" name="name" value="{{ me.name }}" required></div>
+      <div class="form-group"><label>Email</label>
+        <input type="email" name="email" value="{{ me.email }}" required></div>
+    </div>
+
+    {% if session['role'] == 'player' %}
+
+      <div class="form-row">
+        <div class="form-group"><label>Age</label>
+          <input type="number" name="age" min="10" max="60"
+                 value="{{ my_player.age if my_player and my_player.age else '' }}"></div>
+        <div class="form-group"><label>Weight (kg)</label>
+          <input type="number" name="weight" min="30" max="150"
+                 value="{{ my_player.weight if my_player and my_player.weight else '' }}"></div>
+        <div class="form-group"><label>District</label>
+          <select name="district">
+            <option value="">— Select —</option>
+            {% for d in districts %}
+            <option value="{{ d }}" {{ 'selected' if my_player and my_player.district == d }}>{{ d }}</option>
+            {% endfor %}
+          </select></div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group"><label>Team Name</label>
+          <select name="team_id">
+            <option value="">— Select —</option>
+            {% for t in teams %}
+            <option value="{{ t.id }}" {{ 'selected' if my_player and my_player.team_id == t.id }}>{{ t.name }}</option>
+            {% endfor %}
+          </select></div>
+        <div class="form-group"><label>Position</label>
+          <select name="position">
+            {% for p in positions %}
+            <option value="{{ p }}" {{ 'selected' if my_player and my_player.position == p }}>{{ p }}</option>
+            {% endfor %}
+          </select></div>
+      </div>
+
+      {% if not my_player %}
+      <p class="form-msg">💡 Save panna unga player profile automatic-a create aagum!</p>
+      {% endif %}
+
+    {% else %}
+
+      <div class="form-row">
+        <div class="form-group"><label>Team Name</label>
+          <input type="text" value="{{ my_team.name if my_team else '— No team —' }}" readonly
+                 style="background:#0d0d0d; color:var(--gold); font-weight:700;"></div>
+        <div class="form-group"><label>District</label>
+          <select name="district">
+            <option value="">— Select —</option>
+            {% for d in districts %}
+            <option value="{{ d }}" {{ 'selected' if my_team and my_team.district == d }}>{{ d }}</option>
+            {% endfor %}
+          </select></div>
+        <div class="form-group"><label>No of Players</label>
+          <input type="text" id="np-players" readonly
+                 value="{{ all_players | selectattr('team_id', 'eq', my_team.id) | list | length if my_team else 0 }}"
+                 style="background:#0d0d0d; color:var(--gold); font-weight:800;"></div>
+      </div>
+
+      <div class="form-group"><label>Player Selection (unga team players)</label>
+        <div class="player-select">
+          {% for p in all_players %}
+          <label class="ps-item">
+            <input type="checkbox" name="player_ids" value="{{ p.id }}"
+                   {{ 'checked' if my_team and p.team_id == my_team.id }}>
+            <span class="badge-initial">{{ p.name[0] }}</span> {{ p.name }}
+            <span class="tiny">({{ p.position or '—' }})</span>
+          </label>
+          {% else %}
+          <p class="tiny" style="padding:10px;">No players yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+    {% endif %}
+
+    <div class="form-row">
+      <div class="form-group"><label>New Password (optional)</label>
+        <input type="password" name="new_password" placeholder="Leave empty to keep current"></div>
+      <div class="form-group"><label>Confirm New Password</label>
+        <input type="password" name="confirm_password" placeholder="Re-enter new password"></div>
+    </div>
+
+    <button type="submit" class="btn">Save Changes</button>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline">Cancel</a>
+  </form>
+</section>
+
+<script>
+// auto count selected players
+function updateCount() {
+  var boxes = document.querySelectorAll('input[name="player_ids"]');
+  var n = 0;
+  boxes.forEach(b => { if (b.checked) n++; });
+  var el = document.getElementById('np-players');
+  if (el) el.value = n;
+}
+document.querySelectorAll('input[name="player_ids"]').forEach(b => {
+  b.addEventListener('change', updateCount);
+});
+</script>
+{% endblock %}

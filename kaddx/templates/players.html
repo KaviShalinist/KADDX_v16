@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Players{% endblock %}
+
+{% block content %}
+<section class="section" style="max-width:800px;">
+  <h2>🤼 Players</h2>
+  <p style="text-align:center; color:var(--dim); margin-bottom:25px;">
+    CM Trophy Kabaddi 2026 — player rankings by total points
+  </p>
+
+  <form method="get" class="search-bar">
+    <input type="text" name="q" value="{{ q }}" placeholder="🔍 Search player name...">
+    <input type="hidden" name="gender" value="{{ gender }}">
+    <select name="position">
+      <option value="">All Positions</option>
+      {% for p in ['raider', 'defender', 'all-rounder'] %}
+      <option value="{{ p }}" {{ 'selected' if p == position }}>{{ p }}</option>
+      {% endfor %}
+    </select>
+    <select name="team">
+      <option value="">All Teams</option>
+      {% for t in team_rows %}
+      <option value="{{ t.id }}" {{ 'selected' if t.id == team_id }}>{{ t.name }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn btn-sm">Search</button>
+  </form>
+
+  <div class="gender-tabs">
+    <a href="{{ url_for('players', gender='Men', q=q, position=position, team=team_id) }}"
+       class="g-tab {{ 'active' if gender == 'Men' else '' }}">🏀 MEN</a>
+    <a href="{{ url_for('players', gender='Women', q=q, position=position, team=team_id) }}"
+       class="g-tab {{ 'active' if gender == 'Women' else '' }}">🏃 WOMEN</a>
+  </div>
+
+  <div class="player-list">
+    {% for p in players %}
+    <div class="pcard" style="border-left-color:{{ {'raider':'#d4af37','defender':'#2dd4bf','all-rounder':'#a78bfa'}[p.position or 'raider'] }}">
+      <div class="pc-top">
+        <div class="pc-id">
+          <div class="pc-avatar" style="background:linear-gradient(135deg,{{ {'raider':'#d4af37','defender':'#2dd4bf','all-rounder':'#a78bfa'}[p.position or 'raider'] }},{{ {'raider':'#d4af3766','defender':'#2dd4bf66','all-rounder':'#a78bfa66'}[p.position or 'raider'] }})">{{ p.name[0] }}</div>
+          <div class="pc-info">
+            <div class="pc-name">{{ p.name }}</div>
+            <div class="pc-team">{{ p.tname or '—' }}</div>
+            <span class="pc-pospill">{{ {'raider':'👑','defender':'🛡️','all-rounder':'⚡'}[p.position or 'raider'] }} {{ p.position or '—' }}</span>
+          </div>
+        </div>
+        <div class="pc-right">
+          <span class="pc-medal">
+            {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}#{{ loop.index }}{% endif %}
+          </span>
+          <div class="pc-pts">{{ p.raid_points + p.tackle_points }}</div>
+          <div class="pc-pts-label">PTS</div>
+        </div>
+      </div>
+      <div class="pc-strip">
+        <span>Raid <b>{{ p.raid_points }}</b></span><i></i>
+        <span>Tackle <b>{{ p.tackle_points }}</b></span><i></i>
+        <span>🔥 S10 <b>{{ p.super10 }}</b></span><i></i>
+        <span>🧤 H5 <b>{{ p.high5 }}</b></span>
+      </div>
+    </div>
+    {% else %}
+    <p style="text-align:center; color:var(--dim);">No players found.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Compare{% endblock %}
+
+{% block content %}
+<section class="section">
+  <h2>⚖️ Compare</h2>
+  <p style="text-align:center; color:var(--dim); margin-bottom:28px;">
+    CM Trophy Kabaddi — Head-to-Head Comparison
+  </p>
+
+  <!-- ============ TABS ============ -->
+  <div class="cmp-tabs">
+    <a href="{{ url_for('compare', type='teams') }}"
+       class="cmp-tab {{ 'active' if ctype != 'players' }}">🛡️ Compare Teams</a>
+    <a href="{{ url_for('compare', type='players') }}"
+       class="cmp-tab {{ 'active' if ctype == 'players' }}">👤 Compare Players</a>
+  </div>
+
+  {% if ctype == 'players' %}
+
+  <!-- ============ PLAYER COMPARE ============ -->
+  <form method="get" class="compare-box">
+    <input type="hidden" name="type" value="players">
+    <div class="compare-grid">
+      <div class="form-group">
+        <label>👤 Player 1</label>
+        <select name="p1">
+          {% for p in all_players %}
+          <option value="{{ p.id }}" {{ 'selected' if p.id == p1 }}>{{ p.name }} — {{ p.position }}{% if p.tname %} ({{ p.tname }}){% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <span class="vs-badge">VS</span>
+      <div class="form-group">
+        <label>👤 Player 2</label>
+        <select name="p2">
+          {% for p in all_players %}
+          <option value="{{ p.id }}" {{ 'selected' if p.id == p2 }}>{{ p.name }} — {{ p.position }}{% if p.tname %} ({{ p.tname }}){% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <button type="submit" class="btn">Compare</button>
+  </form>
+
+  {% if a and b %}
+
+  <div class="cmp-cards">
+    <div class="cmp-card {{ 'win' if a.total > b.total }}">
+      {% if a.total > b.total %}<span class="cmp-crown">👑</span>{% endif %}
+      <div class="cmp-avatar">{{ a.name[0] }}</div>
+      <div class="cmp-name">{{ a.name }}</div>
+      <div class="cmp-sub">{{ a.tname or 'No team' }}</div>
+      <div><span class="cmp-pill">{{ a.position or '—' }}</span></div>
+      <div class="cmp-pts">{{ a.total }}<span class="cmp-pts-l">TOTAL PTS</span></div>
+    </div>
+    <div class="cmp-card {{ 'win' if b.total > a.total }}">
+      {% if b.total > a.total %}<span class="cmp-crown">👑</span>{% endif %}
+      <div class="cmp-avatar">{{ b.name[0] }}</div>
+      <div class="cmp-name">{{ b.name }}</div>
+      <div class="cmp-sub">{{ b.tname or 'No team' }}</div>
+      <div><span class="cmp-pill">{{ b.position or '—' }}</span></div>
+      <div class="cmp-pts">{{ b.total }}<span class="cmp-pts-l">TOTAL PTS</span></div>
+    </div>
+  </div>
+
+  <table class="schedule-table" style="margin-top:26px;">
+    <thead>
+      <tr><th>Stat</th><th>{{ a.name }}</th><th>{{ b.name }}</th><th>Better</th></tr>
+    </thead>
+    <tbody>
+      {% for label, key, higher in [
+        ('Matches Played', 'mp', false),
+        ('Total Points', 'total', true),
+        ('Raid Points', 'raid_points', true),
+        ('Tackle Points', 'tackle_points', true),
+        ('Super 10s', 'super10', true),
+        ('High 5s', 'high5', true),
+        ('Points / Match', 'ppm', true)] %}
+      <tr>
+        <td>{{ label }}</td>
+        <td class="{{ 'win-cell' if key != 'mp' and a[key] != b[key] and ((a[key] > b[key]) == higher) }}">{{ a[key] }}</td>
+        <td class="{{ 'win-cell' if key != 'mp' and a[key] != b[key] and ((b[key] > a[key]) == higher) }}">{{ b[key] }}</td>
+        <td class="winner-cell">
+          {% if a[key] == b[key] %}—
+          {% elif (a[key] > b[key]) == higher %}🥇 {{ a.name }}
+          {% else %}🥇 {{ b.name }}{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% endif %}
+
+  {% else %}
+
+  <!-- ============ TEAM COMPARE ============ -->
+  <form method="get" class="compare-box">
+    <input type="hidden" name="type" value="teams">
+    <div class="compare-grid">
+      <div class="form-group">
+        <label>🛡️ Team 1</label>
+        <select name="t1">
+          {% for t in all_teams %}
+          <option value="{{ t.id }}" {{ 'selected' if t.id == t1 }}>{{ t.name }} ({{ t.district }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <span class="vs-badge">VS</span>
+      <div class="form-group">
+        <label>🛡️ Team 2</label>
+        <select name="t2">
+          {% for t in all_teams %}
+          <option value="{{ t.id }}" {{ 'selected' if t.id == t2 }}>{{ t.name }} ({{ t.district }})</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <button type="submit" class="btn">Compare</button>
+  </form>
+
+  {% if a and b %}
+
+  <div class="cmp-cards">
+    <div class="cmp-card {{ 'win' if a.pts > b.pts }}">
+      {% if a.pts > b.pts %}<span class="cmp-crown">👑</span>{% endif %}
+      <div class="cmp-avatar">{{ a.name[0] }}</div>
+      <div class="cmp-name">{{ a.name }}</div>
+      <div class="cmp-sub">{{ a.district or '—' }} District</div>
+      <div class="cmp-rec"><span class="cmp-w">{{ a.won }}W</span><span class="cmp-l">{{ a.lost }}L</span></div>
+      <div class="cmp-pts">{{ a.pts }}<span class="cmp-pts-l">TEAM PTS</span></div>
+    </div>
+    <div class="cmp-card {{ 'win' if b.pts > a.pts }}">
+      {% if b.pts > a.pts %}<span class="cmp-crown">👑</span>{% endif %}
+      <div class="cmp-avatar">{{ b.name[0] }}</div>
+      <div class="cmp-name">{{ b.name }}</div>
+      <div class="cmp-sub">{{ b.district or '—' }} District</div>
+      <div class="cmp-rec"><span class="cmp-w">{{ b.won }}W</span><span class="cmp-l">{{ b.lost }}L</span></div>
+      <div class="cmp-pts">{{ b.pts }}<span class="cmp-pts-l">TEAM PTS</span></div>
+    </div>
+  </div>
+
+  <table class="schedule-table" style="margin-top:26px;">
+    <thead>
+      <tr><th>Stat</th><th>{{ a.name }}</th><th>{{ b.name }}</th><th>Better</th></tr>
+    </thead>
+    <tbody>
+      {% for label, key, higher in [
+        ('Matches Played', 'played', false),
+        ('Wins', 'won', true),
+        ('Losses', 'lost', false),
+        ('Points', 'pts', true),
+        ('Points For', 'pf', true),
+        ('Points Against', 'pa', false),
+        ('Raid Points', 'raid', true),
+        ('Tackle Points', 'tackle', true),
+        ('Super 10s', 'super10', true),
+        ('High 5s', 'high5', true)] %}
+      <tr>
+        <td>{{ label }}</td>
+        <td class="{{ 'win-cell' if key != 'played' and a[key] != b[key] and ((a[key] > b[key]) == higher) }}">{{ a[key] }}</td>
+        <td class="{{ 'win-cell' if key != 'played' and a[key] != b[key] and ((b[key] > a[key]) == higher) }}">{{ b[key] }}</td>
+        <td class="winner-cell">
+          {% if a[key] == b[key] %}—
+          {% elif (a[key] > b[key]) == higher %}🥇 {{ a.name }}
+          {% else %}🥇 {{ b.name }}{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% endif %}
+
+  {% endif %}
+</section>
+{% endblock %}

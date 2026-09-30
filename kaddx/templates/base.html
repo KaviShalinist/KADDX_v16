@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}KADDX{% endblock %} — CM Trophy 2026</title>
+  {% block head %}{% endblock %}
+  <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='logo.jpg') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="{{ url_for('event_page') }}">
+      <img src="{{ url_for('static', filename='logo.jpg') }}" alt="KADDX logo" class="logo-img">
+    </a>
+    <ul class="nav-links">
+      <li><a href="{{ url_for('event_page') }}">Home</a></li>
+      <li><a href="{{ url_for('fixtures') }}">Matches</a></li>
+      <li><a href="{{ url_for('teams') }}">Teams</a></li>
+      <li><a href="{{ url_for('stats_page') }}">📊 Stats</a></li>
+      <li><a href="{{ url_for('players') }}">Players</a></li>
+      <li><a href="{{ url_for('results') }}">Results</a></li>
+      {% if session.get('user_id') %}
+        <li><a href="{{ url_for('compare') }}">Compare</a></li>
+        {% if session['role'] == 'admin' %}
+          <li><a href="{{ url_for('admin_home') }}" class="nav-gold">👑 Admin</a></li>
+        {% elif session['role'] == 'manager' %}
+          <li><a href="{{ url_for('manager_home') }}" class="nav-gold">📋 My Team</a></li>
+        {% else %}
+          <li><a href="{{ url_for('player_home') }}" class="nav-gold">🤼 My Profile</a></li>
+        {% endif %}
+        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+      {% else %}
+        <li><a href="{{ url_for('login') }}">Login</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+
+  {% with msgs = get_flashed_messages() %}
+    {% for m in msgs %}<div class="flash">{{ m }}</div>{% endfor %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+
+  <footer>
+    <p>KADDX — For the Kabaddi Generation • Play • Track • Grow</p>
+    <p>© 2026 CM Trophy Kabaddi. All rights reserved. • <strong style="color:#d4af37;">KADDX v16.0</strong></p>
+  </footer>
+
+</body>
+</html>

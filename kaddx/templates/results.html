@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Results{% endblock %}
+
+{% block content %}
+<section class="section">
+  <h2>🏁 Results</h2>
+  {% for m in matches %}
+  <div class="result-card">
+    <p class="tiny">{{ m.date }} &nbsp;|&nbsp; {{ m.venue }} &nbsp;|&nbsp; {{ m.stage|capitalize }} Stage</p>
+    <div class="result-row">
+      <div class="result-team {{ 'winner' if m.team1_points > m.team2_points }}">{{ m.team1 }}</div>
+      <div class="result-score">{{ m.team1_points }} — {{ m.team2_points }}</div>
+      <div class="result-team {{ 'winner' if m.team2_points > m.team1_points }}">{{ m.team2 }}</div>
+    </div>
+    <p class="match-winner">🏆 Winner:
+      {% if m.team1_points > m.team2_points %}{{ m.team1 }}
+      {% else %}{{ m.team2 }}{% endif %}
+    </p>
+    <a href="{{ url_for('match_detail', mid=m.id) }}" class="link-gold">Full details →</a>
+  </div>
+  {% else %}
+  <p style="text-align:center; color:var(--dim);">No completed matches yet.</p>
+  {% endfor %}
+</section>
+{% endblock %}

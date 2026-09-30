@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}{{ m.team1 }} vs {{ m.team2 }}{% endblock %}
+
+{% block head %}
+{% if m.status == 'live' %}
+<!-- LIVE SCORE: page refreshes every 5 seconds automatically -->
+<meta http-equiv="refresh" content="5">
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<section class="section">
+  <h2>🤼 Match Details</h2>
+
+  <div class="match-box">
+    <p class="match-date">{{ m.date }} &nbsp;|&nbsp; {{ m.time or '' }} &nbsp;|&nbsp; {{ m.venue }}</p>
+    <p class="match-date">{{ m.stage|capitalize }} Stage</p>
+    <div class="match-teams">
+      <div class="match-team">{{ m.team1 }}</div>
+      <div class="match-score">
+        {% if m.team1_points is not none %}
+          {{ m.team1_points }} — {{ m.team2_points }}
+        {% else %}
+          <span class="status {{ m.status }}">{{ m.status }}</span>
+        {% endif %}
+        {% if m.status == 'live' %}<br><span class="live-tag">● LIVE — auto updating</span>{% endif %}
+      </div>
+      <div class="match-team">{{ m.team2 }}</div>
+    </div>
+    {% if m.status == 'finished' %}
+      <p class="match-winner">
+        🏆 Winner:
+        {% if m.team1_points > m.team2_points %}{{ m.team1 }}
+        {% elif m.team2_points > m.team1_points %}{{ m.team2 }}
+        {% else %}Draw{% endif %}
+      </p>
+    {% endif %}
+    <p class="match-date" style="margin-top:15px;">
+      👨‍⚖️ Referee: {{ m.referee or 'TBD' }} &nbsp;&nbsp; 📝 Scorer: {{ m.scorer or 'TBD' }}
+    </p>
+  </div>
+
+  <h3 class="sub-h">Starting 7</h3>
+  <div class="cards">
+    <div class="card">
+      <h3>{{ m.team1 }}</h3>
+      <ul class="squad-list">
+        {% for p in squad1 %}<li>{{ p.name }} <span class="tiny">({{ p.position }})</span></li>
+        {% else %}<li class="tiny">Squad not announced</li>{% endfor %}
+      </ul>
+    </div>
+    <div class="card">
+      <h3>{{ m.team2 }}</h3>
+      <ul class="squad-list">
+        {% for p in squad2 %}<li>{{ p.name }} <span class="tiny">({{ p.position }})</span></li>
+        {% else %}<li class="tiny">Squad not announced</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <p style="text-align:center; margin-top: 20px;">
+    <a href="{{ url_for('fixtures') }}" class="btn">← Back to Fixtures</a>
+  </p>
+</section>
+{% endblock %}

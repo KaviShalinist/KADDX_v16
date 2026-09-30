@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Matches{% endblock %}
+
+{% block content %}
+<section class="section" style="max-width:760px;">
+  <h2>📅 Matches</h2>
+  <p style="text-align:center; color:var(--dim); margin-bottom:25px;">
+    CM Trophy Kabaddi 2026 — all fixtures & results
+  </p>
+
+  <!-- SEARCH & FILTERS -->
+  <form method="get" class="filter-bar">
+    <select name="stage">
+      <option value="">All Stages</option>
+      {% for s in stages %}
+      <option value="{{ s }}" {{ 'selected' if s == stage }}>{{ s|capitalize }}</option>
+      {% endfor %}
+    </select>
+    <select name="status">
+      <option value="">All Status</option>
+      <option value="upcoming" {{ 'selected' if status == 'upcoming' }}>Upcoming</option>
+      <option value="live" {{ 'selected' if status == 'live' }}>Live</option>
+      <option value="finished" {{ 'selected' if status == 'finished' }}>Finished</option>
+    </select>
+    <input type="date" name="date" value="{{ date }}">
+    <button class="btn btn-sm">Filter</button>
+    <a href="{{ url_for('fixtures') }}" class="btn btn-sm btn-ghost">Reset</a>
+  </form>
+
+  {% for m in matches %}
+  <div class="match-card {{ 'live-card' if m.status == 'live' }}">
+    <div class="mc-top">
+      <span class="stage-pill">🏏 {{ m.stage|capitalize }} Stage</span>
+      <span class="status-pill status-{{ m.status }}">{{ m.status }}</span>
+    </div>
+    <div class="mc-teams">
+      <div class="mc-side">
+        <div class="mc-district">{{ m.d1 or m.team1 }} District</div>
+        <div class="mc-team {{ 'winner' if m.status == 'finished' and m.team1_points > m.team2_points }}">
+          <span class="badge-initial">{{ m.team1[0] }}</span> {{ m.team1 }}</div>
+      </div>
+      <div class="mc-center">
+        {% if m.team1_points is not none %}
+        <div class="mc-score">{{ m.team1_points }} <span class="sep">—</span> {{ m.team2_points }}</div>
+        {% if m.live_note %}<div class="mc-note">{{ m.live_note }}</div>{% endif %}
+        {% else %}
+        <div class="mc-vs">VS</div>
+        {% endif %}
+      </div>
+      <div class="mc-side">
+        <div class="mc-district">{{ m.d2 or m.team2 }} District</div>
+        <div class="mc-team {{ 'winner' if m.status == 'finished' and m.team2_points > m.team1_points }}">
+          {{ m.team2 }} <span class="badge-initial">{{ m.team2[0] }}</span></div>
+      </div>
+    </div>
+    <div class="mc-meta">📅 {{ m.date }} &nbsp;•&nbsp; {{ m.time or 'TBD' }} &nbsp;•&nbsp; 📍 {{ m.venue }}</div>
+    {% if m.status == 'finished' %}
+    <div class="mc-winner">🏆 Winner:
+      {% if m.team1_points > m.team2_points %}{{ m.team1 }}
+      {% elif m.team2_points > m.team1_points %}{{ m.team2 }}
+      {% else %}Draw{% endif %}
+    </div>
+    {% endif %}
+    <div class="mc-action">
+      <a href="{{ url_for('match_detail', mid=m.id) }}" class="btn btn-sm">
+        {% if m.status == 'live' %}🔴 View Live Match{% else %}Match Details{% endif %}
+      </a>
+    </div>
+  </div>
+  {% else %}
+  <div class="match-card">
+    <p style="text-align:center; color:var(--dim); padding:20px;">
+      No matches found for this filter.
+    </p>
+  </div>
+  {% endfor %}
+</section>
+{% endblock %}

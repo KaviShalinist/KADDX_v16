@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Teams{% endblock %}
+
+{% block content %}
+<section class="section" style="max-width:1000px;">
+  <h2>🛡️ Teams</h2>
+  <p style="text-align:center; color:var(--dim); margin-bottom:25px;">
+    CM Trophy Kabaddi 2026 — click a team for full details
+  </p>
+
+  <form method="get" class="filter-bar">
+    <select name="district">
+      <option value="">All Districts</option>
+      {% for d in districts %}
+      <option value="{{ d }}" {{ 'selected' if d == district }}>{{ d }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn btn-sm">Filter</button>
+    <a href="{{ url_for('teams') }}" class="btn btn-sm btn-ghost">Reset</a>
+  </form>
+
+  <div class="team-grid">
+    {% for t in teams %}
+    <a href="{{ url_for('team_detail', tid=t.id) }}" class="team-card {{ 'top-team' if t.rank == 1 }}">
+      <span class="rank-badge">
+        {% if t.rank == 1 %}🥇 #1{% elif t.rank == 2 %}🥈 #2{% elif t.rank == 3 %}🥉 #3{% else %}#{{ t.rank }}{% endif %}
+      </span>
+      {% if t.live %}<span class="live-pill">● LIVE</span>{% endif %}
+      <div class="tc-avatar">{{ t.name[0] }}</div>
+      <div class="tc-name">{{ t.name }}</div>
+      <div class="tc-district">📍 {{ t.district or '—' }} District</div>
+      <div class="tc-record">
+        <div class="rec-box"><div class="rec-val green">{{ t.won }}</div><div class="rec-label">Won</div></div>
+        <div class="rec-box"><div class="rec-val red">{{ t.lost }}</div><div class="rec-label">Lost</div></div>
+        <div class="rec-box"><div class="rec-val">{{ t.pts }}</div><div class="rec-label">Points</div></div>
+      </div>
+      {% set winrate = (t.won / t.played * 100) | round | int if t.played else 0 %}
+      <div class="win-bar"><div class="win-fill" style="width:{{ winrate }}%"></div></div>
+      <p class="win-pct">{{ winrate }}% win rate</p>
+      <div class="squad-row">
+        <div class="squad-avatars">
+          {% for ini in t.initials %}<span class="sq-av">{{ ini }}</span>{% endfor %}
+        </div>
+        <span class="squad-count"><b>{{ t.squad }}</b> players</span>
+      </div>
+      <span class="view-hint">View Team →</span>
+    </a>
+    {% else %}
+    <p style="text-align:center; color:var(--dim);">No teams found.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
